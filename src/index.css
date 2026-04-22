@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cat-yellow: #FFCD11;
+  --color-cat-yellow-dark: #E5B800;
+  --color-cat-yellow-light: #FFF3C4;
+  --color-cat-black: #1B1B1B;
+  --color-cat-black-light: #2D2D2D;
+  --shadow-cat-card: 0 10px 30px -15px rgba(0, 0, 0, 0.1);
+  --shadow-cat-btn: 0 4px 0 0 #B89600;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-cat-primary {
+  @apply relative px-8 py-4 bg-cat-yellow text-cat-black font-black rounded-xl active:translate-y-1 hover:bg-cat-yellow-dark transition-all duration-200 uppercase tracking-wider text-sm;
+  box-shadow: var(--shadow-cat-btn);
+}
+
+.card-premium {
+  @apply bg-white rounded-2xl border border-gray-200 transition-all duration-300;
+  box-shadow: var(--shadow-cat-card);
+}
+
+.card-premium:hover {
+  @apply -translate-y-1;
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-children>* {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 0.3s;
+}
