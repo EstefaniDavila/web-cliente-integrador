@@ -1,11 +1,49 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { products, formatPrice } from '../data/mockData';
+import useCrud from '../hooks/useCrud';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', machineInfo: '', selectedPartId: '', selectedMachineId: '' });
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); setSent(true); };
+  
+  const { insertModel } = useCrud('/api/v1/client/public/request_quote');
+
+  const handleSubmit = async (e: React.FormEvent) => { 
+    e.preventDefault(); 
+    try {
+      const typeMap: Record<string, string> = {
+        'cotizacion': 'sale',
+        'alquiler': 'rental',
+        'mantenimiento': 'maintenance',
+        'repuestos': 'spare_parts',
+        'otro': 'contact'
+      };
+
+      await insertModel({
+        contact_name: form.name,
+        business_name: form.name,
+        email: form.email,
+        phone: form.phone,
+        type: typeMap[form.subject] || 'contact',
+        notes: `${form.message}\n\nMáquina seleccionada: ${form.selectedMachineId}\nInfo extra: ${form.machineInfo}\nRepuesto: ${form.selectedPartId}`,
+        items: form.selectedPartId && form.selectedPartId !== 'other' ? [{
+          product_id: form.selectedPartId,
+          item_type: 'spare_part',
+          description: form.message,
+          quantity: 1,
+          unit_price: 0,
+          total_price: 0
+        }] : []
+      });
+      setSent(true); 
+    } catch (err) {
+      console.error('Error enviando contacto:', err);
+    }
+  };
+  
+  const selectedPart = products.find(p => p.id === form.selectedPartId);
 
   const contactInfo = [
     { icon: MapPin, title: 'Dirección', lines: ['Zona Industrial Norte', 'Calle 45 #23-10, Lima'] },
@@ -131,6 +169,80 @@ export default function ContactPage() {
                       </select>
                     </div>
                   </div>
+
+                  {['mantenimiento', 'alquiler', 'repuestos'].includes(form.subject) && (
+                    <div style={{ backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', marginBottom: '16px' }}>Detalles del Equipo</h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: form.subject !== 'alquiler' ? '1fr 1fr' : '1fr', gap: '16px', marginBottom: form.subject === 'repuestos' ? '16px' : '0' }}>
+                        <div>
+                          <label style={labelStyle}>{form.subject === 'alquiler' ? 'Máquina a Alquilar' : 'Máquina Relacionada (Opcional)'}</label>
+                          <select value={form.selectedMachineId} onChange={(e) => update('selectedMachineId', e.target.value)} style={{ ...fieldStyle, cursor: 'pointer', backgroundColor: 'white' }}
+                            onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#FFCD11'; }}
+                            onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#e5e7eb'; }}
+                          >
+                            <option value="">Seleccione de nuestro catálogo...</option>
+                            {products.filter(p => p.category === 'maquinaria').map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                            <option value="other">Otra máquina no listada</option>
+                          </select>
+                        </div>
+
+                        {form.subject !== 'alquiler' && (
+                          <div>
+                            <label style={labelStyle}>Especifique Marca / Modelo</label>
+                            <input type="text" value={form.machineInfo} onChange={(e) => update('machineInfo', e.target.value)} placeholder="Ej: CAT 320 - Serie A123" style={{...fieldStyle, backgroundColor: 'white'}}
+                              required={form.selectedMachineId === 'other'}
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {(() => {
+                        const m = products.find(p => p.id === form.selectedMachineId);
+                        if (!m) return null;
+                        return (
+                          <div style={{ display: 'flex', gap: '16px', padding: '12px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', marginTop: '16px' }}>
+                            <img src={m.image} alt={m.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                            <div>
+                              <h4 style={{ fontSize: '12px', fontWeight: 900, color: '#1B1B1B', margin: '0 0 4px', textTransform: 'uppercase' }}>{m.name}</h4>
+                              <p style={{ fontSize: '11px', color: '#6b7280', margin: 0, lineHeight: 1.4 }}>{m.shortDescription}</p>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {form.subject === 'repuestos' && (
+                        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                          <label style={labelStyle}>Repuesto Solicitado</label>
+                          <select value={form.selectedPartId} onChange={(e) => update('selectedPartId', e.target.value)} required style={{ ...fieldStyle, cursor: 'pointer', backgroundColor: 'white' }}
+                            onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#FFCD11'; }}
+                            onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#e5e7eb'; }}
+                          >
+                            <option value="">Seleccione el repuesto...</option>
+                            {products.filter(p => p.category === 'repuestos').map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                            <option value="other">Otro repuesto no listado</option>
+                          </select>
+                          
+                          {selectedPart && form.selectedPartId !== 'other' && (
+                            <div style={{ display: 'flex', gap: '16px', padding: '12px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', marginTop: '12px' }}>
+                              <img src={selectedPart.image} alt={selectedPart.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                              <div>
+                                <h4 style={{ fontSize: '12px', fontWeight: 900, color: '#1B1B1B', margin: '0 0 4px', textTransform: 'uppercase' }}>{selectedPart.name}</h4>
+                                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 6px', lineHeight: 1.4 }}>{selectedPart.shortDescription}</p>
+                                <p style={{ fontSize: '13px', fontWeight: 900, color: '#B89600', margin: 0 }}>{formatPrice(selectedPart.price)}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <label style={labelStyle}>Mensaje</label>

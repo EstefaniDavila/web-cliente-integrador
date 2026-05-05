@@ -55,6 +55,25 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <Link
+                to="/dashboard"
+                style={{
+                  padding: '8px 18px',
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  textDecoration: 'none',
+                  borderRadius: '6px',
+                  transition: 'all 0.15s',
+                  backgroundColor: isActive('/dashboard') ? '#FFCD11' : 'transparent',
+                  color: isActive('/dashboard') ? '#1B1B1B' : '#9ca3af',
+                }}
+              >
+                Mis Cotizaciones
+              </Link>
+            )}
           </div>
 
           {/* Right side */}
@@ -140,6 +159,11 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {isAuthenticated && (
+            <Link to="/dashboard" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '12px 16px', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', textDecoration: 'none', borderRadius: '6px', marginBottom: '4px', backgroundColor: isActive('/dashboard') ? '#FFCD11' : 'transparent', color: isActive('/dashboard') ? '#1B1B1B' : '#9ca3af' }}>
+              Mis Cotizaciones
+            </Link>
+          )}
           {!isAuthenticated && (
             <Link to="/login" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '12px 16px', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', textDecoration: 'none', borderRadius: '6px', marginTop: '8px', backgroundColor: '#FFCD11', color: '#1B1B1B', textAlign: 'center' }}>
               Ingresar

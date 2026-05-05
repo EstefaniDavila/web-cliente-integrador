@@ -28,7 +28,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export default function DashboardPage() {
-  const { isAuthenticated, user, quotations, orders, serviceRequests } = useAuthStore();
+  const { isAuthenticated, user, quotations, orders, serviceRequests, approveQuotation } = useAuthStore();
   if (!isAuthenticated) return <Navigate to="/login?redirect=dashboard" />;
 
   const stats = [
@@ -112,8 +112,8 @@ export default function DashboardPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#1B1B1B' }}>
-                    {['ID de Solicitud', 'Fecha', 'Productos', 'Valor Est.', 'Estado'].map((h, i) => (
-                      <th key={h} style={{ padding: '14px 20px', fontSize: '10px', fontWeight: 900, color: '#FFCD11', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: i === 4 ? 'right' : 'left' }}>{h}</th>
+                    {['ID de Solicitud', 'Fecha', 'Productos', 'Valor Est.', 'Estado', 'Acciones'].map((h, i) => (
+                      <th key={h} style={{ padding: '14px 20px', fontSize: '10px', fontWeight: 900, color: '#FFCD11', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: i >= 4 ? 'right' : 'left' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -122,14 +122,33 @@ export default function DashboardPage() {
                     <tr key={q.id} style={{ borderTop: '1px solid #f3f4f6', backgroundColor: i % 2 === 0 ? 'white' : '#fafafa' }}>
                       <td style={{ padding: '14px 20px', fontSize: '13px', fontWeight: 900, color: '#1B1B1B' }}>{q.id}</td>
                       <td style={{ padding: '14px 20px', fontSize: '13px', color: '#6b7280', fontWeight: 600 }}>{q.date}</td>
-                      <td style={{ padding: '14px 20px', fontSize: '13px', color: '#6b7280', fontWeight: 600 }}>{q.items.length} items</td>
+                      <td style={{ padding: '14px 20px', fontSize: '13px', color: '#6b7280', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {q.items.map((it, idx) => (
+                            <span key={idx} style={{ display: 'inline-block' }}>
+                              <strong style={{ color: '#1B1B1B' }}>{it.quantity}x</strong> {it.product.name} 
+                              <span style={{ fontSize: '10px', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px', textTransform: 'uppercase' }}>{it.type}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </td>
                       <td style={{ padding: '14px 20px', fontSize: '13px', fontWeight: 900, color: '#1B1B1B' }}>{formatPrice(q.total)}</td>
                       <td style={{ padding: '14px 20px', textAlign: 'right' }}><StatusBadge status={q.status} /></td>
+                      <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                        {(q.status === 'pendiente' || q.status === 'en_revision') && (
+                          <button 
+                            onClick={() => approveQuotation(q.id)}
+                            style={{ padding: '6px 12px', backgroundColor: '#FFCD11', color: '#1B1B1B', border: 'none', borderRadius: '4px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 2px 0 0 #B89600' }}
+                          >
+                            Aprobar
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {quotations.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ padding: '48px 20px', textAlign: 'center', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>
+                      <td colSpan={6} style={{ padding: '48px 20px', textAlign: 'center', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>
                         No tiene cotizaciones registradas actualmente.
                       </td>
                     </tr>

@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, Building2, Phone, ArrowRight, ShieldCheck, Wrench, Award } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
+import { Mail, Lock, Eye, EyeOff, User, Building2, Phone, ArrowRight, ShieldCheck, Wrench, Award, MapPin, IdCard } from 'lucide-react';
+import useCrud from '../hooks/useCrud';
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', company: '', phone: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', company: '', phone: '', dni: '', address: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const register = useAuthStore((s) => s.register);
+  const { insertModel } = useCrud('/api/v1/client/public/request_quote');
   const navigate = useNavigate();
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!form.name || !form.email || !form.password || !form.company || !form.phone) {
+    if (!form.name || !form.email || !form.password || !form.company || !form.phone || !form.dni || !form.address) {
       setError('Complete todos los campos');
       return;
     }
@@ -31,11 +31,22 @@ export default function RegisterPage() {
       return;
     }
 
-    const success = register(form);
-    if (success) {
-      navigate('/dashboard');
-    } else {
-      setError('Error al crear la cuenta');
+    try {
+      await insertModel({
+        business_name: form.company,
+        contact_name: form.name,
+        document_number: form.dni,
+        document_type: 'DNI',
+        email: form.email,
+        phone: form.phone,
+        type: 'registration',
+        notes: `Dirección: ${form.address}. Cuenta creada desde la página de registro.`,
+      });
+      // Assuming successful account creation triggers the email with generated password
+      alert("Cuenta creada. Por favor, revise su correo electrónico para ver su contraseña de acceso.");
+      navigate('/login');
+    } catch (err) {
+      setError('Error al crear la cuenta. Intente nuevamente.');
     }
   };
 
@@ -47,9 +58,11 @@ export default function RegisterPage() {
 
   const fields = [
     { field: 'name', label: 'Nombre Completo', icon: User, type: 'text', placeholder: 'Juan Pérez' },
+    { field: 'dni', label: 'DNI / RUC', icon: IdCard, type: 'text', placeholder: '123456789' },
     { field: 'company', label: 'Empresa', icon: Building2, type: 'text', placeholder: 'Constructora ABC' },
     { field: 'email', label: 'Email Corporativo', icon: Mail, type: 'email', placeholder: 'correo@empresa.com' },
     { field: 'phone', label: 'Teléfono', icon: Phone, type: 'tel', placeholder: '+51 999 123 456' },
+    { field: 'address', label: 'Dirección de Entrega', icon: MapPin, type: 'text', placeholder: 'Av. Principal 123' },
   ];
 
   return (
@@ -133,7 +146,7 @@ export default function RegisterPage() {
                     style={{ marginTop: '2px', accentColor: '#FFCD11', cursor: 'pointer' }}
                   />
                   <label htmlFor="terms" style={{ fontSize: '12px', color: '#6b7280', lineHeight: 1.5, cursor: 'pointer' }}>
-                    Acepto los <a href="#" style={{ color: '#1B1B1B', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}>Términos</a> y la <a href="#" style={{ color: '#1B1B1B', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}>Privacidad</a> de CAT Machinery.
+                    Acepto los <Link to="/terminos" style={{ color: '#1B1B1B', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}>Términos</Link> y la <Link to="/privacidad" style={{ color: '#1B1B1B', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}>Privacidad</Link> de CAT Machinery.
                   </label>
                 </div>
 

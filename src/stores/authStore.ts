@@ -9,9 +9,10 @@ interface AuthState {
   orders: Order[];
   serviceRequests: ServiceRequest[];
   login: (email: string, password: string) => boolean;
-  register: (data: { name: string; email: string; password: string; company: string; phone: string }) => boolean;
+  register: (data: { name: string; email: string; password: string; company: string; phone: string; dni?: string; address?: string }) => boolean;
   logout: () => void;
   addQuotation: (quotation: Quotation) => void;
+  approveQuotation: (id: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -29,6 +30,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email: email,
       company: 'Constructora del Pacífico S.A.',
       phone: '+57 300 123 4567',
+      dni: '12345678',
+      address: 'Av. Las Palmeras 123, Lima',
     };
 
     set({
@@ -49,6 +52,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email: data.email,
       company: data.company,
       phone: data.phone,
+      dni: data.dni,
+      address: data.address,
     };
 
     set({
@@ -74,5 +79,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   addQuotation: (quotation) => {
     set({ quotations: [quotation, ...get().quotations] });
+  },
+
+  approveQuotation: (id) => {
+    set((state) => {
+      const quote = state.quotations.find((q) => q.id === id);
+      if (!quote) return state;
+
+      const updatedQuotations = state.quotations.map((q) =>
+        q.id === id ? { ...q, status: 'aprobada' as any } : q
+      );
+
+      const newOrder: Order = {
+        id: `ORD-${Date.now().toString().slice(-6)}`,
+        quotationId: id,
+        date: new Date().toLocaleDateString('es-PE'),
+        items: quote.items,
+        status: 'procesando' as any,
+        total: quote.total,
+      };
+
+      return {
+        quotations: updatedQuotations,
+        orders: [newOrder, ...state.orders],
+      };
+    });
   },
 }));

@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Globe, ChevronDown, Truck, Settings, ShieldCheck, Award, Wrench } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../providers/UserProvider';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: 'demo@catmachinery.pe', password: 'demo123' });
   const [error, setError] = useState('');
-  const login = useAuthStore((s) => s.login);
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -21,16 +21,11 @@ export default function LoginPage() {
       return;
     }
 
-    const success = login(form.email, form.password);
-    if (success) {
-      // Redirect based on the 'redirect' param or go to dashboard
-      if (redirectTo === 'dashboard') {
-        navigate('/dashboard');
-      } else {
-        navigate(redirectTo);
-      }
-    } else {
-      setError('Credenciales incorrectas');
+    try {
+      await loginUser({ email: form.email, password: form.password });
+      // Note: UserProvider.tsx handles the redirect on success via window.location.href
+    } catch (err: any) {
+      setError('Credenciales incorrectas o error en el servidor');
     }
   };
 

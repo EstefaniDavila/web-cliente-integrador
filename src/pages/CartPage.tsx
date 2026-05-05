@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingCart, ArrowRight, ArrowLeft, Mail, User, Phone, Building2, Send, CheckCircle2 } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../providers/UserProvider';
+import useCrud from '../hooks/useCrud';
 import { formatPrice } from '../data/mockData';
 
 const inputStyle = {
@@ -13,28 +14,64 @@ const inputStyle = {
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, getTotal } = useCartStore();
-  const { isAuthenticated, addQuotation } = useAuthStore();
+  const { user } = useAuth();
+  const { insertModel } = useCrud('/api/v1/client/public/request_quote');
   const navigate = useNavigate();
 
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', message: '', document_number: '', document_type: 'DNI' });
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
-  const handleRequestQuote = () => {
-    if (isAuthenticated) {
-      addQuotation({ id: `COT-${Date.now()}`, date: new Date().toISOString().split('T')[0], items: [...items], status: 'pendiente' as const, total: getTotal(), notes: '' });
-      clearCart();
-      navigate('/dashboard');
-    } else {
-      setShowQuoteForm(true);
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        name: user.roleable?.contact_name || user.roleable?.business_name || '',
+        email: user.email || '',
+        phone: user.phone || user.roleable?.phone || '',
+        company: user.roleable?.business_name || '',
+        document_number: user.document_number || '',
+        document_type: user.roleable?.document_type || 'DNI'
+      }));
     }
+  }, [user]);
+
+  const handleRequestQuote = () => {
+    setShowQuoteForm(true);
   };
 
-  const handleSubmitQuote = (e: React.FormEvent) => {
+  const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
-    setQuoteSent(true);
-    setTimeout(() => { clearCart(); navigate('/'); }, 3000);
+    try {
+      const payload = {
+        business_name: form.company || form.name,
+        contact_name: form.name,
+        document_number: form.document_number,
+        document_type: form.document_type,
+        email: form.email,
+        phone: form.phone,
+        type: 'sale', // Defaulting to sale based on cart
+        notes: form.message,
+        subtotal: getTotal(),
+        tax: getTotal() * 0.18,
+        total: getTotal() * 1.18,
+        items: items.map(item => ({
+          product_id: item.product.id,
+          item_type: item.type === 'alquiler' ? 'rental' : 'product',
+          description: item.product.name,
+          quantity: item.quantity,
+          unit_price: item.product.price,
+          total_price: item.product.price * item.quantity
+        }))
+      };
+
+      await insertModel(payload);
+      setQuoteSent(true);
+      setTimeout(() => { clearCart(); navigate(user ? '/dashboard' : '/'); }, 3000);
+    } catch (error) {
+      console.error("Error submitting quote", error);
+    }
   };
 
   // Success state
@@ -98,6 +135,7 @@ export default function CartPage() {
                   { field: 'email', label: 'Email', icon: Mail, type: 'email', placeholder: 'correo@empresa.com' },
                   { field: 'phone', label: 'Teléfono', icon: Phone, type: 'tel', placeholder: '+51 999 888 777' },
                   { field: 'company', label: 'Empresa', icon: Building2, type: 'text', placeholder: 'Constructora ABC' },
+                  { field: 'document_number', label: 'Documento de Identidad', icon: User, type: 'text', placeholder: 'DNI / RUC' },
                 ].map(({ field, label, icon: Icon, type, placeholder }) => (
                   <div key={field}>
                     <label style={{ display: 'block', fontSize: '10px', fontWeight: 900, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>{label}</label>
@@ -235,11 +273,11 @@ export default function CartPage() {
             </div>
 
             <button onClick={handleRequestQuote} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#FFCD11', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#1B1B1B', boxShadow: '0 4px 0 0 #B89600', marginBottom: '12px' }}>
-              {isAuthenticated ? 'Solicitar Cotización' : 'Cotizar Sin Registro'}
+              {user ? 'Solicitar Cotización' : 'Cotizar Sin Registro'}
               <ArrowRight size={16} />
             </button>
 
-            {!isAuthenticated && (
+            {!user && (
               <p style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginBottom: '12px' }}>
                 O{' '}
                 <Link to="/login" style={{ color: '#FFCD11', fontWeight: 900 }}>inicie sesión</Link>

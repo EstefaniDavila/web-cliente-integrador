@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Wrench, Calendar, FileText, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { products } from '../data/mockData';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../providers/UserProvider';
+import useCrud from '../hooks/useCrud';
 
 export default function MaintenanceRequestPage() {
     const [searchParams] = useSearchParams();
     const productId = searchParams.get('producto');
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuthStore();
+    const { user } = useAuth();
+    const { insertModel } = useCrud('/api/v1/client/public/request_quote');
 
     const [submitted, setSubmitted] = useState(false);
     const [form, setForm] = useState({
@@ -20,10 +22,12 @@ export default function MaintenanceRequestPage() {
         issue: '',
         urgency: 'normal',
         preferredDate: '',
-        name: user?.name || '',
-        company: user?.company || '',
+        name: user?.roleable?.contact_name || user?.roleable?.business_name || '',
+        company: user?.roleable?.business_name || '',
         email: user?.email || '',
-        phone: user?.phone || '',
+        phone: user?.phone || user?.roleable?.phone || '',
+        document_number: user?.document_number || '',
+        document_type: user?.roleable?.document_type || 'DNI'
     });
 
     useEffect(() => {
@@ -37,10 +41,31 @@ export default function MaintenanceRequestPage() {
 
     const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
-        // In production, this would send to backend
+        try {
+            await insertModel({
+                business_name: form.company || form.name,
+                contact_name: form.name,
+                document_number: form.document_number,
+                document_type: form.document_type,
+                email: form.email,
+                phone: form.phone,
+                type: 'maintenance',
+                notes: `Tipo de servicio: ${form.serviceType}\nMáquina: ${form.machineModel}\nSerie: ${form.serialNumber}\nHoras: ${form.workHours}\nUrgencia: ${form.urgency}\nFecha preferida: ${form.preferredDate}\nProblema: ${form.issue}`,
+                items: form.productId ? [{
+                    product_id: form.productId,
+                    item_type: 'service',
+                    description: form.serviceType,
+                    quantity: 1,
+                    unit_price: 0,
+                    total_price: 0
+                }] : []
+            });
+            setSubmitted(true);
+        } catch (error) {
+            console.error("Error submitting maintenance request", error);
+        }
     };
 
     if (submitted) {
@@ -111,7 +136,7 @@ export default function MaintenanceRequestPage() {
             <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '56px 40px 80px' }}>
 
                 {/* Alert if not authenticated */}
-                {!isAuthenticated && (
+                {!user && (
                     <div style={{ backgroundColor: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '12px', padding: '16px 20px', marginBottom: '32px', display: 'flex', gap: '14px' }}>
                         <AlertCircle size={20} color="#3b82f6" style={{ flexShrink: 0, marginTop: '2px' }} />
                         <div>
@@ -215,7 +240,7 @@ export default function MaintenanceRequestPage() {
                         </div>
 
                         {/* Contact Information */}
-                        {!isAuthenticated && (
+                        {!user && (
                             <div style={{ marginBottom: '32px' }}>
                                 <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid #FFCD11' }}>
                                     Datos de Contacto
@@ -236,6 +261,10 @@ export default function MaintenanceRequestPage() {
                                     <div>
                                         <label style={labelStyle}>Teléfono</label>
                                         <input type="tel" value={form.phone} onChange={(e) => update('phone', e.target.value)} required placeholder="+51 999 888 777" style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Documento de Identidad</label>
+                                        <input type="text" value={form.document_number} onChange={(e) => update('document_number', e.target.value)} required placeholder="DNI / RUC" style={inputStyle} />
                                     </div>
                                 </div>
                             </div>
