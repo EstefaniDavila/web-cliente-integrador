@@ -48,6 +48,7 @@ export default function MaintenanceRequestPage() {
         try {
             // 1. API CONNECTION (FRONTEND -> BACKEND)
             const payload = {
+                client_id: user?.roleable?.id || user?.roleable_id,
                 business_name: form.company || form.name,
                 contact_name: form.name,
                 document_number: form.document_number,

@@ -2,12 +2,27 @@ import { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { products, formatPrice } from '../data/mockData';
 import useCrud from '../hooks/useCrud';
+import { useAuth } from '../providers/UserProvider';
+import { useEffect } from 'react';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  const { user } = useAuth();
+  
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', machineInfo: '', selectedPartId: '', selectedMachineId: '', start_date: '', duration: '' });
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
   
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        name: user.roleable?.contact_name || user.roleable?.business_name || '',
+        email: user.email || '',
+        phone: user.phone || user.roleable?.phone || ''
+      }));
+    }
+  }, [user]);
+
   const { insertModel } = useCrud('/api/v1/client/public/request_quote');
 
   const handleSubmit = async (e: React.FormEvent) => { 
@@ -65,6 +80,7 @@ export default function ContactPage() {
       }
 
       await insertModel({
+        client_id: user?.roleable?.id || user?.roleable_id,
         contact_name: form.name,
         business_name: form.name,
         email: form.email,

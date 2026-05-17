@@ -49,6 +49,7 @@ export default function CartPage() {
       // 1. API CONNECTION (FRONTEND -> BACKEND)
       // Se prepara el payload que viajará al ERP a través de public_controller.rb
       const payload = {
+        client_id: user?.roleable?.id || user?.roleable_id,
         business_name: form.company || form.name,
         contact_name: form.name,
         document_number: form.document_number,
