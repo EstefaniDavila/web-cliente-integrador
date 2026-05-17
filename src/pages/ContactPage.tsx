@@ -1,11 +1,104 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { products, formatPrice } from '../data/mockData';
+import useCrud from '../hooks/useCrud';
+import { useAuth } from '../providers/UserProvider';
+import { useEffect } from 'react';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+  const { user } = useAuth();
+  
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', machineInfo: '', selectedPartId: '', selectedMachineId: '', start_date: '', duration: '' });
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); setSent(true); };
+  
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        name: user.roleable?.contact_name || user.roleable?.business_name || '',
+        email: user.email || '',
+        phone: user.phone || user.roleable?.phone || ''
+      }));
+    }
+  }, [user]);
+
+  const { insertModel } = useCrud('/api/v1/client/public/request_quote');
+
+  const handleSubmit = async (e: React.FormEvent) => { 
+    e.preventDefault(); 
+    try {
+      const typeMap: Record<string, string> = {
+        'cotizacion': 'sale',
+        'alquiler': 'rental',
+        'mantenimiento': 'maintenance',
+        'repuestos': 'spare_parts',
+        'otro': 'contact'
+      };
+
+      const selectedMachine = products.find(p => p.id === form.selectedMachineId);
+      const machineLabel = selectedMachine ? selectedMachine.name : (form.selectedMachineId === 'other' ? form.machineInfo : 'Ninguna');
+
+      const selectedPart = products.find(p => p.id === form.selectedPartId);
+      const partLabel = selectedPart ? selectedPart.name : (form.selectedPartId === 'other' ? 'Otro repuesto' : 'Ninguno');
+
+      let fullNotes = form.message;
+      if (form.subject === 'alquiler' || form.subject === 'mantenimiento') {
+        fullNotes = `📋 DETALLES DEL EQUIPO:\n• Máquina seleccionada: ${machineLabel}\n• Info extra: ${form.machineInfo || 'Ninguna'}\n\n💬 MENSAJE:\n${form.message}`;
+      } else if (form.subject === 'repuestos') {
+        fullNotes = `📋 DETALLES DEL REPUESTO:\n• Máquina relacionada: ${machineLabel}\n• Repuesto solicitado: ${partLabel}\n\n💬 MENSAJE:\n${form.message}`;
+      }
+
+      let requestItems: any[] = [];
+      if (form.subject === 'alquiler' && form.selectedMachineId && form.selectedMachineId !== 'other') {
+        requestItems.push({
+          product_id: form.selectedMachineId,
+          item_type: 'product',
+          description: selectedMachine ? selectedMachine.name : 'Máquina de Alquiler',
+          quantity: 1,
+          unit_price: selectedMachine ? selectedMachine.price : 0,
+          total_price: selectedMachine ? selectedMachine.price : 0
+        });
+      } else if (form.subject === 'repuestos' && form.selectedPartId && form.selectedPartId !== 'other') {
+        requestItems.push({
+          product_id: form.selectedPartId,
+          item_type: 'spare_part',
+          description: selectedPart ? selectedPart.name : 'Repuesto',
+          quantity: 1,
+          unit_price: selectedPart ? selectedPart.price : 0,
+          total_price: selectedPart ? selectedPart.price : 0
+        });
+      } else if (form.subject === 'mantenimiento' && form.selectedMachineId && form.selectedMachineId !== 'other') {
+        requestItems.push({
+          product_id: form.selectedMachineId,
+          item_type: 'service',
+          description: `Servicio de Mantenimiento: ${selectedMachine ? selectedMachine.name : 'Máquina'}`,
+          quantity: 1,
+          unit_price: 0,
+          total_price: 0
+        });
+      }
+
+      await insertModel({
+        client_id: user?.roleable?.id || user?.roleable_id,
+        contact_name: form.name,
+        business_name: form.name,
+        email: form.email,
+        phone: form.phone,
+        type: typeMap[form.subject] || 'contact',
+        notes: fullNotes,
+        start_date: ['alquiler', 'mantenimiento'].includes(form.subject) ? form.start_date : undefined,
+        duration: ['alquiler', 'mantenimiento'].includes(form.subject) ? form.duration : undefined,
+        product_id: form.selectedMachineId || form.selectedPartId || undefined,
+        items: requestItems
+      });
+      setSent(true); 
+    } catch (err) {
+      console.error('Error enviando contacto:', err);
+    }
+  };
+  
+  const selectedPart = products.find(p => p.id === form.selectedPartId);
 
   const contactInfo = [
     { icon: MapPin, title: 'Dirección', lines: ['Zona Industrial Norte', 'Calle 45 #23-10, Lima'] },
@@ -131,6 +224,110 @@ export default function ContactPage() {
                       </select>
                     </div>
                   </div>
+
+                  {['mantenimiento', 'alquiler', 'repuestos'].includes(form.subject) && (
+                    <div style={{ backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', marginBottom: '16px' }}>Detalles del Equipo</h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: form.subject !== 'alquiler' ? '1fr 1fr' : '1fr', gap: '16px', marginBottom: form.subject === 'repuestos' ? '16px' : '0' }}>
+                        <div>
+                          <label style={labelStyle}>{form.subject === 'alquiler' ? 'Máquina a Alquilar' : 'Máquina Relacionada (Opcional)'}</label>
+                          <select value={form.selectedMachineId} onChange={(e) => update('selectedMachineId', e.target.value)} style={{ ...fieldStyle, cursor: 'pointer', backgroundColor: 'white' }}
+                            onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#FFCD11'; }}
+                            onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#e5e7eb'; }}
+                          >
+                            <option value="">Seleccione de nuestro catálogo...</option>
+                            {products.filter(p => p.category === 'maquinaria').map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                            <option value="other">Otra máquina no listada</option>
+                          </select>
+                        </div>
+
+                        {form.subject !== 'alquiler' && (
+                          <div>
+                            <label style={labelStyle}>Especifique Marca / Modelo</label>
+                            <input type="text" value={form.machineInfo} onChange={(e) => update('machineInfo', e.target.value)} placeholder="Ej: CAT 320 - Serie A123" style={{...fieldStyle, backgroundColor: 'white'}}
+                              required={form.selectedMachineId === 'other'}
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {(() => {
+                        const m = products.find(p => p.id === form.selectedMachineId);
+                        if (!m) return null;
+                        return (
+                          <div style={{ display: 'flex', gap: '16px', padding: '12px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', marginTop: '16px' }}>
+                            <img src={m.image} alt={m.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                            <div>
+                              <h4 style={{ fontSize: '12px', fontWeight: 900, color: '#1B1B1B', margin: '0 0 4px', textTransform: 'uppercase' }}>{m.name}</h4>
+                              <p style={{ fontSize: '11px', color: '#6b7280', margin: 0, lineHeight: 1.4 }}>{m.shortDescription}</p>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {['alquiler', 'mantenimiento'].includes(form.subject) && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                          <div>
+                            <label style={labelStyle}>Fecha de Inicio Solicitada *</label>
+                            <input 
+                              type="date" 
+                              value={form.start_date} 
+                              onChange={(e) => update('start_date', e.target.value)} 
+                              required 
+                              style={{ ...fieldStyle, backgroundColor: 'white' }} 
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                            />
+                          </div>
+                          <div>
+                            <label style={labelStyle}>Duración Estimada *</label>
+                            <input 
+                              type="text" 
+                              value={form.duration} 
+                              onChange={(e) => update('duration', e.target.value)} 
+                              required 
+                              placeholder="Ej: 7 días" 
+                              style={{ ...fieldStyle, backgroundColor: 'white' }} 
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {form.subject === 'repuestos' && (
+                        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                          <label style={labelStyle}>Repuesto Solicitado</label>
+                          <select value={form.selectedPartId} onChange={(e) => update('selectedPartId', e.target.value)} required style={{ ...fieldStyle, cursor: 'pointer', backgroundColor: 'white' }}
+                            onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#FFCD11'; }}
+                            onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = '#e5e7eb'; }}
+                          >
+                            <option value="">Seleccione el repuesto...</option>
+                            {products.filter(p => p.category === 'repuestos').map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                            <option value="other">Otro repuesto no listado</option>
+                          </select>
+                          
+                          {selectedPart && form.selectedPartId !== 'other' && (
+                            <div style={{ display: 'flex', gap: '16px', padding: '12px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', marginTop: '12px' }}>
+                              <img src={selectedPart.image} alt={selectedPart.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                              <div>
+                                <h4 style={{ fontSize: '12px', fontWeight: 900, color: '#1B1B1B', margin: '0 0 4px', textTransform: 'uppercase' }}>{selectedPart.name}</h4>
+                                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 6px', lineHeight: 1.4 }}>{selectedPart.shortDescription}</p>
+                                <p style={{ fontSize: '13px', fontWeight: 900, color: '#B89600', margin: 0 }}>{formatPrice(selectedPart.price)}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <label style={labelStyle}>Mensaje</label>

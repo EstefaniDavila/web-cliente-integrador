@@ -1,13 +1,103 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Check, ChevronRight, Wrench, Calendar } from 'lucide-react';
-import { products, formatPrice } from '../data/mockData';
+import { formatPrice } from '../data/mockData';
 import { useCartStore } from '../stores/cartStore';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const product = products.find((p) => p.id === id);
+  const [product, setProduct] = useState<any>(null);
+  const [related, setRelated] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const backend_host = import.meta.env.VITE_BACKEND_HOST;
+        let mappedProduct = null;
+        let allProducts = [];
+
+        try {
+          const res = await axios.get(`${backend_host}/api/v1/admin/products/${id}`);
+          const p = res.data;
+          mappedProduct = {
+            id: p.id,
+            name: p.name,
+            description: p.description || 'Sin descripción detallada.',
+            shortDescription: p.description?.substring(0, 80) || 'Producto sin descripción corta.',
+            price: parseFloat(p.base_price) || 0,
+            category: p.product_type === 'spare_part' ? 'repuestos' : p.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
+            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&q=80&w=800',
+            inStock: p.active,
+            specs: [{ label: 'Código', value: p.code }],
+            features: []
+          };
+        } catch (err) {
+          console.warn("Could not load product from backend, using mockData fallback:", err);
+        }
+
+        // If backend did not return product, search in mockData
+        if (!mappedProduct) {
+          const { products: mockProducts } = await import('../data/mockData');
+          const mockP = mockProducts.find(item => item.id === id);
+          if (mockP) {
+            mappedProduct = {
+              id: mockP.id,
+              name: mockP.name,
+              description: mockP.description,
+              shortDescription: mockP.shortDescription,
+              price: mockP.price,
+              category: mockP.category,
+              image: mockP.image,
+              inStock: mockP.inStock,
+              specs: mockP.specs || [],
+              features: []
+            };
+          }
+        }
+
+        setProduct(mappedProduct);
+
+        if (mappedProduct) {
+          try {
+            const resAll = await axios.get(`${backend_host}/api/v1/admin/products`);
+            if (resAll.data && Array.isArray(resAll.data.data) && resAll.data.data.length > 0) {
+              allProducts = resAll.data.data.map((rp: any) => ({
+                id: rp.id,
+                name: rp.name,
+                price: parseFloat(rp.base_price) || 0,
+                category: rp.product_type === 'spare_part' ? 'repuestos' : rp.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
+                image: rp.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&q=80&w=800'
+              }));
+            }
+          } catch (err) {
+            console.warn("Could not load related products from backend:", err);
+          }
+
+          if (allProducts.length === 0) {
+            const { products: mockProducts } = await import('../data/mockData');
+            allProducts = mockProducts;
+          }
+
+          setRelated(allProducts.filter((rp: any) => rp.category === mappedProduct.category && rp.id !== mappedProduct.id).slice(0, 3));
+        }
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (id) fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9f9f9' }}>Cargando producto...</main>;
+  }
 
   if (!product) {
     return (
@@ -24,7 +114,6 @@ export default function ProductDetailPage() {
 
   const isMachinery = product.category === 'maquinaria';
   const isPart = product.category === 'repuestos';
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 3);
 
   const handleAddToQuote = () => {
     addItem(product, 'cotizacion');

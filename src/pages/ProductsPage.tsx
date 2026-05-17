@@ -1,15 +1,53 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Search, SlidersHorizontal } from 'lucide-react';
-import { products, formatPrice, categoryLabels } from '../data/mockData';
+import { formatPrice, categoryLabels, products as mockProducts } from '../data/mockData';
 import { useCartStore } from '../stores/cartStore';
+import axios from 'axios';
 
 const categories = ['todos', 'maquinaria', 'repuestos', 'accesorios'] as const;
 
 export default function ProductsPage() {
   const [activeCategory, setActiveCategory] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState<any[]>([]);
   const addItem = useCartStore((s) => s.addItem);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const backend_host = import.meta.env.VITE_BACKEND_HOST;
+        const res = await axios.get(`${backend_host}/api/v1/admin/products`);
+        
+        let mappedProducts = [];
+        if (res.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          mappedProducts = res.data.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || 'Sin descripción detallada.',
+            shortDescription: p.description?.substring(0, 80) || 'Producto sin descripción corta.',
+            price: parseFloat(p.base_price) || 0,
+            category: p.product_type === 'spare_part' ? 'repuestos' : p.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
+            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&q=80&w=800', // fallback image
+            inStock: p.active,
+            specs: { 'Código': p.code },
+            features: []
+          }));
+        }
+        
+        if (mappedProducts.length === 0) {
+          setProducts(mockProducts);
+        } else {
+          setProducts(mappedProducts);
+        }
+      } catch (error) {
+        console.error("Error fetching products from backend:", error);
+        setProducts(mockProducts);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -17,7 +55,7 @@ export default function ProductsPage() {
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, products]);
 
   return (
     <main style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>

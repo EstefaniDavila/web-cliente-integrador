@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import WhatsAppButton from './components/layout/WhatsAppButton';
+import CartFloatingButton from './components/layout/CartFloatingButton';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -11,6 +13,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ContactPage from './pages/ContactPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import { UserProvider } from './providers/UserProvider';
+import { AlertDialogProvider } from './providers/AlertDialogProvider';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -39,9 +45,13 @@ function AppLayout() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/contacto" element={<ContactPage />} />
+          <Route path="/terminos" element={<TermsPage />} />
+          <Route path="/privacidad" element={<PrivacyPage />} />
         </Routes>
       </div>
       {!hideNavFooter && <Footer />}
+      <WhatsAppButton />
+      <CartFloatingButton />
     </div>
   );
 }
@@ -49,7 +59,11 @@ function AppLayout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppLayout />
+      <UserProvider>
+        <AlertDialogProvider>
+          <AppLayout />
+        </AlertDialogProvider>
+      </UserProvider>
     </BrowserRouter>
   );
 }

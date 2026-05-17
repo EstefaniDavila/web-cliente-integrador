@@ -1,11 +1,49 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, ShoppingCart } from 'lucide-react';
-import { products, formatPrice } from '../../data/mockData';
+import { formatPrice, products as mockProducts } from '../../data/mockData';
 import { useCartStore } from '../../stores/cartStore';
+import axios from 'axios';
 
 export default function FeaturedProducts() {
-  const featured = products.filter((p) => p.featured).slice(0, 4);
+  const [featured, setFeatured] = useState<any[]>([]);
   const addItem = useCartStore((s) => s.addItem);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const backend_host = import.meta.env.VITE_BACKEND_HOST;
+        const res = await axios.get(`${backend_host}/api/v1/admin/products`);
+        
+        let mappedProducts = [];
+        if (res.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          mappedProducts = res.data.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || 'Sin descripción detallada.',
+            shortDescription: p.description?.substring(0, 80) || 'Producto sin descripción corta.',
+            price: parseFloat(p.base_price) || 0,
+            category: p.product_type === 'spare_part' ? 'repuestos' : p.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
+            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&q=80&w=800',
+            inStock: p.active,
+            specs: { 'Código': p.code },
+            features: []
+          }));
+        }
+        
+        if (mappedProducts.length === 0) {
+          setFeatured(mockProducts.slice(0, 4));
+        } else {
+          setFeatured(mappedProducts.slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Error fetching featured products from backend:", error);
+        setFeatured(mockProducts.slice(0, 4));
+      }
+    };
+    
+    fetchFeatured();
+  }, []);
 
   return (
     <section style={{ backgroundColor: '#f9f9f9', padding: '80px 0', position: 'relative', overflow: 'hidden' }} id="featured-products">

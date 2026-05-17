@@ -2,7 +2,7 @@ import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useCartStore } from '../../stores/cartStore';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuth } from '../../providers/UserProvider';
 
 const navLinks = [
   { to: '/', label: 'Inicio' },
@@ -16,7 +16,8 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
   const itemCount = useCartStore((s) => s.getItemCount());
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { user, logoutUser } = useAuth();
+  const isAuthenticated = !!user;
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -55,6 +56,25 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <Link
+                to="/dashboard"
+                style={{
+                  padding: '8px 18px',
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  textDecoration: 'none',
+                  borderRadius: '6px',
+                  transition: 'all 0.15s',
+                  backgroundColor: isActive('/dashboard') ? '#FFCD11' : 'transparent',
+                  color: isActive('/dashboard') ? '#1B1B1B' : '#9ca3af',
+                }}
+              >
+                Mis Cotizaciones
+              </Link>
+            )}
           </div>
 
           {/* Right side */}
@@ -90,22 +110,22 @@ export default function Navbar() {
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 12px 6px 6px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}
                   >
                     <div style={{ width: '32px', height: '32px', backgroundColor: '#FFCD11', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '14px', color: '#1B1B1B' }}>
-                      {user?.name.charAt(0)}
+                      {(user?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{user?.name.split(' ')[0]}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{(user?.full_name || user?.email || 'User').split(' ')[0]}</span>
                   </button>
 
                   {userMenuOpen && (
                     <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: '240px', backgroundColor: '#2D2D2D', border: '1px solid rgba(255,205,17,0.2)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
                       <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,205,17,0.05)' }}>
-                        <p style={{ fontWeight: 900, fontSize: '13px', color: 'white', textTransform: 'uppercase' }}>{user?.name}</p>
+                        <p style={{ fontWeight: 900, fontSize: '13px', color: 'white', textTransform: 'uppercase' }}>{user?.full_name || 'Usuario'}</p>
                         <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{user?.email}</p>
                       </div>
                       <div style={{ padding: '8px' }}>
                         <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', fontSize: '11px', fontWeight: 900, color: '#d1d5db', textDecoration: 'none', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                           <LayoutDashboard size={16} color="#FFCD11" /> Mi Panel
                         </Link>
-                        <button onClick={() => { logout(); setUserMenuOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', fontSize: '11px', fontWeight: 900, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        <button onClick={() => { logoutUser(); setUserMenuOpen(false); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', fontSize: '11px', fontWeight: 900, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                           <LogOut size={16} /> Cerrar Sesión
                         </button>
                       </div>
@@ -140,6 +160,11 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {isAuthenticated && (
+            <Link to="/dashboard" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '12px 16px', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', textDecoration: 'none', borderRadius: '6px', marginBottom: '4px', backgroundColor: isActive('/dashboard') ? '#FFCD11' : 'transparent', color: isActive('/dashboard') ? '#1B1B1B' : '#9ca3af' }}>
+              Mis Cotizaciones
+            </Link>
+          )}
           {!isAuthenticated && (
             <Link to="/login" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '12px 16px', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', textDecoration: 'none', borderRadius: '6px', marginTop: '8px', backgroundColor: '#FFCD11', color: '#1B1B1B', textAlign: 'center' }}>
               Ingresar

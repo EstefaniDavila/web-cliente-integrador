@@ -32,6 +32,8 @@ export interface User {
   email: string;
   company: string;
   phone: string;
+  dni?: string;
+  address?: string;
 }
 
 export interface Quotation {

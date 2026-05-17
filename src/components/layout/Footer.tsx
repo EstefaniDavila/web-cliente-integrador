@@ -27,9 +27,9 @@ export default function Footer() {
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
               {[
-                { icon: FaInstagram, href: '#' },
-                { icon: FaFacebookF, href: '#' },
-                { icon: FaLinkedinIn, href: '#' },
+                { icon: FaInstagram, href: 'https://instagram.com/catmachineryperu' },
+                { icon: FaFacebookF, href: 'https://facebook.com/catmachineryperu' },
+                { icon: FaLinkedinIn, href: 'https://linkedin.com/company/catmachineryperu' },
               ].map(({ icon: Icon, href }, i) => (
                 <a key={i} href={href} style={{ width: '38px', height: '38px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', textDecoration: 'none', transition: 'all 0.15s' }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#FFCD11'; (e.currentTarget as HTMLAnchorElement).style.color = '#1B1B1B'; }}
@@ -108,8 +108,11 @@ export default function Footer() {
           © {currentYear} CAT Machinery Perú. Todos los derechos reservados.
         </p>
         <div style={{ display: 'flex', gap: '24px' }}>
-          {['Términos y Condiciones', 'Política de Privacidad'].map((t) => (
-            <a key={t} href="#" style={{ fontSize: '12px', color: '#4b5563', textDecoration: 'none', fontWeight: 600 }}>{t}</a>
+          {[
+            { label: 'Términos y Condiciones', href: '/terminos' },
+            { label: 'Política de Privacidad', href: '/privacidad' }
+          ].map((t) => (
+            <Link key={t.label} to={t.href} style={{ fontSize: '12px', color: '#4b5563', textDecoration: 'none', fontWeight: 600 }}>{t.label}</Link>
           ))}
         </div>
       </div>
