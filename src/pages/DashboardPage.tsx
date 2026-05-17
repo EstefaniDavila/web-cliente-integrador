@@ -1,7 +1,9 @@
 import { Link, Navigate } from 'react-router-dom';
 import { FileText, Package, Wrench, Clock, ArrowRight, Building2, Mail, Phone } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../providers/UserProvider';
 import { formatPrice } from '../data/mockData';
+import useCrud from '../hooks/useCrud';
+import { useEffect, useState } from 'react';
 
 const statusConfig: Record<string, { color: string; bg: string; dot: string; label: string }> = {
   pendiente: { color: '#d97706', bg: 'rgba(217,119,6,0.1)', dot: '#d97706', label: 'Pendiente' },
@@ -28,8 +30,47 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export default function DashboardPage() {
-  const { isAuthenticated, user, quotations, orders, serviceRequests, approveQuotation } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login?redirect=dashboard" />;
+  const { user } = useAuth();
+  
+  const [quotations, setQuotations] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<any[]>([]);
+
+  const { getModel: getQuotations } = useCrud('/api/v1/client/portal/quotations');
+  const { getModel: getOrders } = useCrud('/api/v1/client/portal/orders');
+  const { getModel: getMaintenances } = useCrud('/api/v1/client/portal/maintenances');
+
+  // Fallback: if context user is stale, read from localStorage directly
+  const resolvedUser = user || (() => {
+    try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
+  })();
+
+  useEffect(() => {
+    if (!resolvedUser) return;
+    
+    // Intenta obtener el client_id desde el objeto roleable (puede venir como id, roleable_id, etc.)
+    const roleable = resolvedUser.roleable;
+    const clientId = roleable?.id || resolvedUser.roleable_id;
+    
+    console.log('[Dashboard] resolvedUser:', resolvedUser);
+    console.log('[Dashboard] clientId:', clientId);
+
+    if (!clientId) {
+      console.warn('[Dashboard] No se encontró client_id en el usuario');
+      return;
+    }
+    
+    getQuotations(`?client_id=${clientId}`).then(data => setQuotations(data.quotations || [])).catch(console.error);
+    getOrders(`?client_id=${clientId}`).then(data => setOrders(data.sales_orders || [])).catch(console.error);
+    getMaintenances(`?client_id=${clientId}`).then(data => setServiceRequests(data.maintenances || [])).catch(console.error);
+  }, [resolvedUser?.roleable?.id || resolvedUser?.roleable_id]);
+
+  const approveQuotation = (id: string) => {
+    console.log("Aprobar cotización no implementado en backend para:", id);
+    alert("Funcionalidad en desarrollo");
+  };
+
+  if (!resolvedUser) return <Navigate to="/login?redirect=dashboard" />;
 
   const stats = [
     { icon: FileText, label: 'Cotizaciones', value: quotations.length, accent: '#FFCD11' },
@@ -48,7 +89,7 @@ export default function DashboardPage() {
           <div>
             <p style={{ fontSize: '11px', fontWeight: 900, color: '#FFCD11', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Panel de Control</p>
             <h1 style={{ fontSize: 'clamp(24px, 3vw, 40px)', fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1 }}>
-              Bienvenido, {user?.name.split(' ')[0]}
+              Bienvenido, {(user?.full_name || user?.email || 'Usuario').split(' ')[0]}
             </h1>
           </div>
           <Link to="/productos" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#FFCD11', color: '#1B1B1B', fontWeight: 900, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', textDecoration: 'none', borderRadius: '6px', boxShadow: '0 3px 0 0 #B89600' }}>
@@ -66,14 +107,14 @@ export default function DashboardPage() {
           <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '28px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', backgroundColor: '#FFCD11' }} />
             <div style={{ width: '56px', height: '56px', backgroundColor: '#1B1B1B', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 900, color: '#FFCD11', marginBottom: '16px' }}>
-              {user?.name.charAt(0)}
+              {(user?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
             </div>
-            <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '14px' }}>{user?.name}</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '14px' }}>{user?.full_name || user?.email}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[
-                { icon: Building2, text: user?.company },
+                { icon: Building2, text: user?.company || 'Sin Empresa' },
                 { icon: Mail, text: user?.email },
-                { icon: Phone, text: user?.phone },
+                { icon: Phone, text: user?.phone || 'Sin Teléfono' },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Icon size={14} color="#FFCD11" />

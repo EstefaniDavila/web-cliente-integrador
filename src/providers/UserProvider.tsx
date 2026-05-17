@@ -219,13 +219,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [authTokensRef.current]);
 
   const contextData = useMemo(() => ({
-    user: userRef.current,
-    authTokens: authTokensRef.current,
+    user: user,            // ← usa el estado reactivo, no el ref
+    authTokens: authTokens,
     loginUser,
     logoutUser,
     setAuthTokens, 
     setUser, 
-  }), [authTokensRef.current, userRef.current]);
+  }), [user, authTokens]);
 
   return (
     <UserContext.Provider value={contextData}>

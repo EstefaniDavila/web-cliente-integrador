@@ -5,7 +5,7 @@ import { useAuth } from '../providers/UserProvider';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ email: 'demo@catmachinery.pe', password: 'demo123' });
+  const [form, setForm] = useState({ email: 'cliente@erpcat.com', password: '10000007' });
   const [error, setError] = useState('');
   const { loginUser } = useAuth();
   const navigate = useNavigate();
@@ -86,8 +86,8 @@ export default function LoginPage() {
                     Credenciales de Demostración
                   </p>
                   <p style={{ fontSize: '12px', color: '#6b7280', lineHeight: 1.5 }}>
-                    Email: <strong>demo@catmachinery.pe</strong><br />
-                    Contraseña: <strong>demo123</strong>
+                    Email: <strong>cliente@erpcat.com</strong><br />
+                    Contraseña: <strong>10000007</strong>
                   </p>
                 </div>
 

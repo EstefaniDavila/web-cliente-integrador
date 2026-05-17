@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingCart, ArrowRight, ArrowLeft, Mail, User, Phone, Building2, Send, CheckCircle2 } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 import { useAuth } from '../providers/UserProvider';
-import useCrud from '../hooks/useCrud';
+import axios from 'axios';
 import { formatPrice } from '../data/mockData';
 
 const inputStyle = {
@@ -15,7 +15,6 @@ const inputStyle = {
 export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, getTotal } = useCartStore();
   const { user } = useAuth();
-  const { insertModel } = useCrud('/api/v1/client/public/request_quote');
   const navigate = useNavigate();
 
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -44,6 +43,8 @@ export default function CartPage() {
   const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // 1. API CONNECTION (FRONTEND -> BACKEND)
+      // Se prepara el payload que viajará al ERP a través de public_controller.rb
       const payload = {
         business_name: form.company || form.name,
         contact_name: form.name,
@@ -66,7 +67,10 @@ export default function CartPage() {
         }))
       };
 
-      await insertModel(payload);
+      // Se envía directamente al endpoint público (sin token)
+      const backend_host = import.meta.env.VITE_BACKEND_HOST;
+      await axios.post(`${backend_host}/api/v1/client/public/request_quote`, payload);
+      
       setQuoteSent(true);
       setTimeout(() => { clearCart(); navigate(user ? '/dashboard' : '/'); }, 3000);
     } catch (error) {

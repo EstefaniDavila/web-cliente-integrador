@@ -3,7 +3,9 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Wrench, Calendar, FileText, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { products } from '../data/mockData';
 import { useAuth } from '../providers/UserProvider';
+import axios from 'axios';
 import useCrud from '../hooks/useCrud';
+
 
 export default function MaintenanceRequestPage() {
     const [searchParams] = useSearchParams();
@@ -44,7 +46,8 @@ export default function MaintenanceRequestPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await insertModel({
+            // 1. API CONNECTION (FRONTEND -> BACKEND)
+            const payload = {
                 business_name: form.company || form.name,
                 contact_name: form.name,
                 document_number: form.document_number,
@@ -61,7 +64,11 @@ export default function MaintenanceRequestPage() {
                     unit_price: 0,
                     total_price: 0
                 }] : []
-            });
+            };
+
+            const backend_host = import.meta.env.VITE_BACKEND_HOST;
+            await axios.post(`${backend_host}/api/v1/client/public/request_quote`, payload);
+
             setSubmitted(true);
         } catch (error) {
             console.error("Error submitting maintenance request", error);

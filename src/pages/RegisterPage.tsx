@@ -8,7 +8,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const { insertModel } = useCrud('/api/v1/client/public/request_quote');
+  const { insertModel } = useCrud('/api/v1/general/users/sign_up');
   const navigate = useNavigate();
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
@@ -33,14 +33,11 @@ export default function RegisterPage() {
 
     try {
       await insertModel({
-        business_name: form.company,
-        contact_name: form.name,
-        document_number: form.dni,
-        document_type: 'DNI',
         email: form.email,
-        phone: form.phone,
-        type: 'registration',
-        notes: `Dirección: ${form.address}. Cuenta creada desde la página de registro.`,
+        password: form.password,
+        password_confirmation: form.password,
+        document_number: form.dni
+        // Nota: El controlador base de api_guard sólo toma estos campos por defecto.
       });
       // Assuming successful account creation triggers the email with generated password
       alert("Cuenta creada. Por favor, revise su correo electrónico para ver su contraseña de acceso.");
