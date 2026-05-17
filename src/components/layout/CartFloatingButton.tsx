@@ -75,8 +75,18 @@ export default function CartFloatingButton() {
                       <span style={{ fontSize: '11px', fontWeight: 900, color: '#1B1B1B' }}>
                         {formatPrice(item.product.price * item.quantity)}
                       </span>
-                      <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', backgroundColor: item.type === 'cotizacion' ? 'rgba(255,205,17,0.15)' : 'rgba(16,185,129,0.15)', color: item.type === 'cotizacion' ? '#B89600' : '#059669', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: 'auto' }}>
-                        {item.type === 'cotizacion' ? 'Cotizar' : 'Alquiler'}
+                      <span style={{ 
+                        fontSize: '9px', 
+                        padding: '2px 6px', 
+                        borderRadius: '4px', 
+                        backgroundColor: item.type === 'cotizacion' ? 'rgba(255,205,17,0.15)' : item.type === 'alquiler' ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)', 
+                        color: item.type === 'cotizacion' ? '#B89600' : item.type === 'alquiler' ? '#059669' : '#2563eb', 
+                        fontWeight: 900, 
+                        textTransform: 'uppercase', 
+                        letterSpacing: '0.05em', 
+                        marginLeft: 'auto' 
+                      }}>
+                        {item.type === 'cotizacion' ? 'Cotizar' : item.type === 'alquiler' ? 'Alquiler' : 'Mantenimiento'}
                       </span>
                     </div>
                   </div>

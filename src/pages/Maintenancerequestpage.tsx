@@ -55,6 +55,7 @@ export default function MaintenanceRequestPage() {
                 email: form.email,
                 phone: form.phone,
                 type: 'maintenance',
+                start_date: form.preferredDate,
                 notes: `Tipo de servicio: ${form.serviceType}\nMáquina: ${form.machineModel}\nSerie: ${form.serialNumber}\nHoras: ${form.workHours}\nUrgencia: ${form.urgency}\nFecha preferida: ${form.preferredDate}\nProblema: ${form.issue}`,
                 items: form.productId ? [{
                     product_id: form.productId,

@@ -19,7 +19,7 @@ export default function CartPage() {
 
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [quoteSent, setQuoteSent] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', message: '', document_number: '', document_type: 'DNI' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', message: '', document_number: '', document_type: 'DNI', start_date: '', duration: '' });
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
 
   useEffect(() => {
@@ -43,6 +43,9 @@ export default function CartPage() {
   const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const hasRental = items.some(item => item.type === 'alquiler');
+      const quoteType = hasRental ? 'rental' : 'sale';
+
       // 1. API CONNECTION (FRONTEND -> BACKEND)
       // Se prepara el payload que viajará al ERP a través de public_controller.rb
       const payload = {
@@ -52,7 +55,9 @@ export default function CartPage() {
         document_type: form.document_type,
         email: form.email,
         phone: form.phone,
-        type: 'sale', // Defaulting to sale based on cart
+        type: quoteType,
+        start_date: hasRental ? form.start_date : undefined,
+        duration: hasRental ? form.duration : undefined,
         notes: form.message,
         subtotal: getTotal(),
         tax: getTotal() * 0.18,
@@ -150,6 +155,32 @@ export default function CartPage() {
                   </div>
                 ))}
               </div>
+              
+              {items.some(item => item.type === 'alquiler') && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', border: '1px solid rgba(255,205,17,0.4)', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(255,205,17,0.04)' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 900, color: '#B89600', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Fecha de inicio del alquiler *</label>
+                    <input 
+                      type="date" 
+                      value={form.start_date} 
+                      onChange={(e) => update('start_date', e.target.value)} 
+                      required 
+                      style={{ ...inputStyle, padding: '12px 16px' }} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 900, color: '#B89600', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Duración (ej. 7 días, 1 mes) *</label>
+                    <input 
+                      type="text" 
+                      value={form.duration} 
+                      onChange={(e) => update('duration', e.target.value)} 
+                      required 
+                      placeholder="Ej: 7 días" 
+                      style={{ ...inputStyle, padding: '12px 16px' }} 
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label style={{ display: 'block', fontSize: '10px', fontWeight: 900, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Mensaje Adicional</label>
