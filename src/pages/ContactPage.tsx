@@ -5,7 +5,7 @@ import useCrud from '../hooks/useCrud';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', machineInfo: '', selectedPartId: '', selectedMachineId: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', machineInfo: '', selectedPartId: '', selectedMachineId: '', start_date: '', duration: '' });
   const update = (field: string, value: string) => setForm({ ...form, [field]: value });
   
   const { insertModel } = useCrud('/api/v1/client/public/request_quote');
@@ -21,21 +21,60 @@ export default function ContactPage() {
         'otro': 'contact'
       };
 
+      const selectedMachine = products.find(p => p.id === form.selectedMachineId);
+      const machineLabel = selectedMachine ? selectedMachine.name : (form.selectedMachineId === 'other' ? form.machineInfo : 'Ninguna');
+
+      const selectedPart = products.find(p => p.id === form.selectedPartId);
+      const partLabel = selectedPart ? selectedPart.name : (form.selectedPartId === 'other' ? 'Otro repuesto' : 'Ninguno');
+
+      let fullNotes = form.message;
+      if (form.subject === 'alquiler' || form.subject === 'mantenimiento') {
+        fullNotes = `📋 DETALLES DEL EQUIPO:\n• Máquina seleccionada: ${machineLabel}\n• Info extra: ${form.machineInfo || 'Ninguna'}\n\n💬 MENSAJE:\n${form.message}`;
+      } else if (form.subject === 'repuestos') {
+        fullNotes = `📋 DETALLES DEL REPUESTO:\n• Máquina relacionada: ${machineLabel}\n• Repuesto solicitado: ${partLabel}\n\n💬 MENSAJE:\n${form.message}`;
+      }
+
+      let requestItems: any[] = [];
+      if (form.subject === 'alquiler' && form.selectedMachineId && form.selectedMachineId !== 'other') {
+        requestItems.push({
+          product_id: form.selectedMachineId,
+          item_type: 'product',
+          description: selectedMachine ? selectedMachine.name : 'Máquina de Alquiler',
+          quantity: 1,
+          unit_price: selectedMachine ? selectedMachine.price : 0,
+          total_price: selectedMachine ? selectedMachine.price : 0
+        });
+      } else if (form.subject === 'repuestos' && form.selectedPartId && form.selectedPartId !== 'other') {
+        requestItems.push({
+          product_id: form.selectedPartId,
+          item_type: 'spare_part',
+          description: selectedPart ? selectedPart.name : 'Repuesto',
+          quantity: 1,
+          unit_price: selectedPart ? selectedPart.price : 0,
+          total_price: selectedPart ? selectedPart.price : 0
+        });
+      } else if (form.subject === 'mantenimiento' && form.selectedMachineId && form.selectedMachineId !== 'other') {
+        requestItems.push({
+          product_id: form.selectedMachineId,
+          item_type: 'service',
+          description: `Servicio de Mantenimiento: ${selectedMachine ? selectedMachine.name : 'Máquina'}`,
+          quantity: 1,
+          unit_price: 0,
+          total_price: 0
+        });
+      }
+
       await insertModel({
         contact_name: form.name,
         business_name: form.name,
         email: form.email,
         phone: form.phone,
         type: typeMap[form.subject] || 'contact',
-        notes: `${form.message}\n\nMáquina seleccionada: ${form.selectedMachineId}\nInfo extra: ${form.machineInfo}\nRepuesto: ${form.selectedPartId}`,
-        items: form.selectedPartId && form.selectedPartId !== 'other' ? [{
-          product_id: form.selectedPartId,
-          item_type: 'spare_part',
-          description: form.message,
-          quantity: 1,
-          unit_price: 0,
-          total_price: 0
-        }] : []
+        notes: fullNotes,
+        start_date: ['alquiler', 'mantenimiento'].includes(form.subject) ? form.start_date : undefined,
+        duration: ['alquiler', 'mantenimiento'].includes(form.subject) ? form.duration : undefined,
+        product_id: form.selectedMachineId || form.selectedPartId || undefined,
+        items: requestItems
       });
       setSent(true); 
     } catch (err) {
@@ -214,6 +253,36 @@ export default function ContactPage() {
                           </div>
                         );
                       })()}
+
+                      {['alquiler', 'mantenimiento'].includes(form.subject) && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                          <div>
+                            <label style={labelStyle}>Fecha de Inicio Solicitada *</label>
+                            <input 
+                              type="date" 
+                              value={form.start_date} 
+                              onChange={(e) => update('start_date', e.target.value)} 
+                              required 
+                              style={{ ...fieldStyle, backgroundColor: 'white' }} 
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                            />
+                          </div>
+                          <div>
+                            <label style={labelStyle}>Duración Estimada *</label>
+                            <input 
+                              type="text" 
+                              value={form.duration} 
+                              onChange={(e) => update('duration', e.target.value)} 
+                              required 
+                              placeholder="Ej: 7 días" 
+                              style={{ ...fieldStyle, backgroundColor: 'white' }} 
+                              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
+                              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                            />
+                          </div>
+                        </div>
+                      )}
 
                       {form.subject === 'repuestos' && (
                         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>

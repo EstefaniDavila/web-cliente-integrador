@@ -17,6 +17,9 @@ const statusConfig: Record<string, { color: string; bg: string; dot: string; lab
   programada: { color: '#2563eb', bg: 'rgba(37,99,235,0.1)', dot: '#2563eb', label: 'Programada' },
   en_proceso: { color: '#ea580c', bg: 'rgba(234,88,12,0.1)', dot: '#ea580c', label: 'En Proceso' },
   completada: { color: '#16a34a', bg: 'rgba(22,163,74,0.1)', dot: '#16a34a', label: 'Completada' },
+  sent: { color: '#2563eb', bg: 'rgba(37,99,235,0.1)', dot: '#2563eb', label: 'Recibida / Por Aprobar' },
+  client_approved: { color: '#0d9488', bg: 'rgba(13,148,136,0.1)', dot: '#0d9488', label: 'Aprobada por Cliente' },
+  client_rejected: { color: '#b91c1c', bg: 'rgba(185,28,28,0.1)', dot: '#b91c1c', label: 'Rechazada por Cliente' },
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -50,24 +53,40 @@ export default function DashboardPage() {
     
     // Intenta obtener el client_id desde el objeto roleable (puede venir como id, roleable_id, etc.)
     const roleable = resolvedUser.roleable;
-    const clientId = roleable?.id || resolvedUser.roleable_id;
+    const clientId = roleable?.id || resolvedUser.roleable_id || '1';
     
     console.log('[Dashboard] resolvedUser:', resolvedUser);
     console.log('[Dashboard] clientId:', clientId);
-
-    if (!clientId) {
-      console.warn('[Dashboard] No se encontró client_id en el usuario');
-      return;
-    }
     
     getQuotations(`?client_id=${clientId}`).then(data => setQuotations(data.quotations || [])).catch(console.error);
     getOrders(`?client_id=${clientId}`).then(data => setOrders(data.sales_orders || [])).catch(console.error);
     getMaintenances(`?client_id=${clientId}`).then(data => setServiceRequests(data.maintenances || [])).catch(console.error);
   }, [resolvedUser?.roleable?.id || resolvedUser?.roleable_id]);
 
+  const { updateModel: updateQuotation } = useCrud();
+
   const approveQuotation = (id: string) => {
-    console.log("Aprobar cotización no implementado en backend para:", id);
-    alert("Funcionalidad en desarrollo");
+    updateQuotation({}, `/api/v1/client/portal/quotations/${id}/approve`)
+      .then(() => {
+        alert("✅ Cotización aprobada exitosamente");
+        // Reload quotations
+        const roleable = resolvedUser?.roleable;
+        const clientId = roleable?.id || resolvedUser?.roleable_id || '1';
+        getQuotations(`?client_id=${clientId}`).then(data => setQuotations(data.quotations || [])).catch(console.error);
+      })
+      .catch(console.error);
+  };
+
+  const rejectQuotation = (id: string) => {
+    updateQuotation({}, `/api/v1/client/portal/quotations/${id}/reject`)
+      .then(() => {
+        alert("❌ Cotización rechazada");
+        // Reload quotations
+        const roleable = resolvedUser?.roleable;
+        const clientId = roleable?.id || resolvedUser?.roleable_id || '1';
+        getQuotations(`?client_id=${clientId}`).then(data => setQuotations(data.quotations || [])).catch(console.error);
+      })
+      .catch(console.error);
   };
 
   if (!resolvedUser) return <Navigate to="/login?redirect=dashboard" />;
@@ -165,10 +184,10 @@ export default function DashboardPage() {
                       <td style={{ padding: '14px 20px', fontSize: '13px', color: '#6b7280', fontWeight: 600 }}>{q.date}</td>
                       <td style={{ padding: '14px 20px', fontSize: '13px', color: '#6b7280', fontWeight: 600 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {q.items.map((it, idx) => (
+                          {q.items?.map((it: any, idx: number) => (
                             <span key={idx} style={{ display: 'inline-block' }}>
-                              <strong style={{ color: '#1B1B1B' }}>{it.quantity}x</strong> {it.product.name} 
-                              <span style={{ fontSize: '10px', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px', textTransform: 'uppercase' }}>{it.type}</span>
+                              <strong style={{ color: '#1B1B1B' }}>{it.quantity}x</strong> {it.product?.name || it.description} 
+                              <span style={{ fontSize: '10px', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px', textTransform: 'uppercase' }}>{it.item_type || it.type}</span>
                             </span>
                           ))}
                         </div>
@@ -176,6 +195,22 @@ export default function DashboardPage() {
                       <td style={{ padding: '14px 20px', fontSize: '13px', fontWeight: 900, color: '#1B1B1B' }}>{formatPrice(q.total)}</td>
                       <td style={{ padding: '14px 20px', textAlign: 'right' }}><StatusBadge status={q.status} /></td>
                       <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                        {q.status === 'sent' && (
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                            <button 
+                              onClick={() => approveQuotation(q.id)}
+                              style={{ padding: '6px 12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 2px 0 0 #117a37' }}
+                            >
+                              Aprobar
+                            </button>
+                            <button 
+                              onClick={() => rejectQuotation(q.id)}
+                              style={{ padding: '6px 12px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 2px 0 0 #b91c1c' }}
+                            >
+                              Rechazar
+                            </button>
+                          </div>
+                        )}
                         {(q.status === 'pendiente' || q.status === 'en_revision') && (
                           <button 
                             onClick={() => approveQuotation(q.id)}
