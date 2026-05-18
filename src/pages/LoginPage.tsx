@@ -136,7 +136,6 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Botón */}
                 <button
                   type="submit"
                   id="login-submit"
@@ -145,7 +144,6 @@ export default function LoginPage() {
                   INGRESAR AL PORTAL <ArrowRight size={18} />
                 </button>
 
-                {/* Registro */}
                 <p style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af' }}>
                   ¿No tiene una cuenta?{' '}
                   <Link to="/registro" style={{ color: '#FFCD11', fontWeight: 900, textTransform: 'uppercase', fontSize: '11px', textDecoration: 'none' }}>
