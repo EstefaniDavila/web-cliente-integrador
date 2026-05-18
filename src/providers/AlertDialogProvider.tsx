@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useRef, useCallback, useContext, ReactNode } from "react";
+import React, { createContext, useReducer, useRef, useCallback, useContext, type ReactNode } from "react";
 
 type AlertDialogState = {
   open: boolean;

@@ -210,7 +210,7 @@ export default function DashboardPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#1B1B1B' }}>
-                    {['ID de Cotización', 'Fecha', 'Tipo', 'Productos', 'Total', 'Estado', 'Acciones'].map((h, i) => (
+                    {['ID de Cotización', 'Fecha', 'Tipo', 'Productos', 'Total', 'Estado', 'Acciones'].map((h) => (
                       <th key={h} style={{ padding: '14px 20px', fontSize: '10px', fontWeight: 900, color: '#FFCD11', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: (h === 'Estado' || h === 'Acciones' || h === 'Total') ? 'right' : 'left' }}>{h}</th>
                     ))}
                   </tr>
@@ -297,7 +297,7 @@ export default function DashboardPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#1B1B1B' }}>
-                    {['ID de Solicitud', 'Fecha', 'Tipo', 'Productos', 'Valor Est.', 'Estado', 'Acciones'].map((h, i) => (
+                    {['ID de Solicitud', 'Fecha', 'Tipo', 'Productos', 'Valor Est.', 'Estado', 'Acciones'].map((h) => (
                       <th key={h} style={{ padding: '14px 20px', fontSize: '10px', fontWeight: 900, color: '#FFCD11', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: (h === 'Estado' || h === 'Acciones' || h === 'Valor Est.') ? 'right' : 'left' }}>{h}</th>
                     ))}
                   </tr>

@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Wrench, Calendar, FileText, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Wrench, FileText, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { products } from '../data/mockData';
 import { useAuth } from '../providers/UserProvider';
 import axios from 'axios';
-import useCrud from '../hooks/useCrud';
 
 
 export default function MaintenanceRequestPage() {
     const [searchParams] = useSearchParams();
     const productId = searchParams.get('producto');
-    const navigate = useNavigate();
     const { user } = useAuth();
-    const { insertModel } = useCrud('/api/v1/client/public/request_quote');
 
     const [submitted, setSubmitted] = useState(false);
     const [form, setForm] = useState({

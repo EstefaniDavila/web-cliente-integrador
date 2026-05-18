@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Globe, ChevronDown, Truck, Settings, ShieldCheck, Award, Wrench } from 'lucide-react';
 import { useAuth } from '../providers/UserProvider';
 
@@ -8,9 +8,6 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: 'cliente@erpcat.com', password: '10000007' });
   const [error, setError] = useState('');
   const { loginUser } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

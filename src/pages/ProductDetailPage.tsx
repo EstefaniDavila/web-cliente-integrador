@@ -188,7 +188,7 @@ export default function ProductDetailPage() {
                 <span style={{ fontSize: '10px', fontWeight: 900, color: '#FFCD11', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Especificaciones Técnicas</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', backgroundColor: '#e5e7eb' }}>
-                {product.specs.map((spec) => (
+                {product.specs.map((spec: any) => (
                   <div key={spec.label} style={{ backgroundColor: 'white', padding: '14px 18px' }}>
                     <span style={{ fontSize: '9px', color: '#9ca3af', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>{spec.label}</span>
                     <span style={{ fontSize: '14px', fontWeight: 900, color: '#1B1B1B', marginTop: '4px', display: 'block' }}>{spec.value}</span>

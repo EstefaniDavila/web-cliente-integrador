@@ -170,7 +170,7 @@ export default function ContactPage() {
                 <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: 1.7, marginBottom: '32px' }}>
                   Nos pondremos en contacto con usted en las próximas 24 horas.
                 </p>
-                <button onClick={() => { setSent(false); setForm({ name: '', email: '', phone: '', subject: '', message: '' }); }} style={{ padding: '12px 28px', backgroundColor: '#1B1B1B', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}>
+                <button onClick={() => { setSent(false); setForm({ name: '', email: '', phone: '', subject: '', message: '', machineInfo: '', selectedPartId: '', selectedMachineId: '', start_date: '', duration: '' }); }} style={{ padding: '12px 28px', backgroundColor: '#1B1B1B', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}>
                   Enviar Otro Mensaje
                 </button>
               </div>
