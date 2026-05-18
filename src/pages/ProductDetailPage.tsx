@@ -31,7 +31,7 @@ export default function ProductDetailPage() {
             shortDescription: p.description?.substring(0, 80) || 'Producto sin descripción corta.',
             price: parseFloat(p.base_price) || 0,
             category: p.product_type === 'spare_part' ? 'repuestos' : p.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
-            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&q=80&w=800',
+            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1579684389782-64d84b5e901a?auto=format&fit=crop&q=80&w=800',
             inStock: p.active,
             specs: [{ label: 'Código', value: p.code }],
             features: []
@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
                 name: rp.name,
                 price: parseFloat(rp.base_price) || 0,
                 category: rp.product_type === 'spare_part' ? 'repuestos' : rp.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
-                image: rp.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&q=80&w=800'
+                image: rp.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1579684389782-64d84b5e901a?auto=format&fit=crop&q=80&w=800'
               }));
             }
           } catch (err) {

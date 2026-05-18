@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
-import WhatsAppButton from './components/layout/WhatsAppButton';
 import CartFloatingButton from './components/layout/CartFloatingButton';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
@@ -50,7 +49,6 @@ function AppLayout() {
         </Routes>
       </div>
       {!hideNavFooter && <Footer />}
-      <WhatsAppButton />
       <CartFloatingButton />
     </div>
   );
