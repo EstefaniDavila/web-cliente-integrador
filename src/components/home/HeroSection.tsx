@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Truck, Headphones, Zap } from 'lucide-react';
 
 export default function HeroSection() {
-  x1
   return (
     <section style={{ backgroundColor: '#1B1B1B', position: 'relative', overflow: 'hidden', minHeight: 'calc(100vh - 72px)' }} id="hero">
       <div style={{
