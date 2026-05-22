@@ -197,9 +197,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Actions */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Primary actions */}
               <div style={{ display: 'grid', gridTemplateColumns: isMachinery ? '1fr 1fr' : '1fr', gap: '12px' }}>
                 <button
                   onClick={handleAddToQuote}
@@ -220,7 +218,6 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
-              {/* Maintenance button for machinery */}
               {isMachinery && (
                 <button
                   onClick={handleRequestMaintenance}
@@ -232,7 +229,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Guarantees */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[
                 'Garantía extendida incluida',
