@@ -4,7 +4,6 @@ import { ArrowRight, ShieldCheck, Truck, Headphones, Zap } from 'lucide-react';
 export default function HeroSection() {
   return (
     <section style={{ backgroundColor: '#1B1B1B', position: 'relative', overflow: 'hidden', minHeight: 'calc(100vh - 72px)' }} id="hero">
-
       <div style={{
         position: 'absolute', inset: 0, opacity: 0.15, pointerEvents: 'none',
         backgroundImage: 'radial-gradient(circle, #FFCD11 1px, transparent 1px)',
