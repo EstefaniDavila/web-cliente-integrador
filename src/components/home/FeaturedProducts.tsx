@@ -14,7 +14,7 @@ export default function FeaturedProducts() {
       try {
         const backend_host = import.meta.env.VITE_BACKEND_HOST;
         const res = await axios.get(`${backend_host}/api/v1/admin/products`);
-        
+
         let mappedProducts = [];
         if (res.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
           mappedProducts = res.data.data.map((p: any) => ({
@@ -24,13 +24,13 @@ export default function FeaturedProducts() {
             shortDescription: p.description?.substring(0, 80) || 'Producto sin descripción corta.',
             price: parseFloat(p.base_price) || 0,
             category: p.product_type === 'spare_part' ? 'repuestos' : p.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
-            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1579684389782-64d84b5e901a?auto=format&fit=crop&q=80&w=800',
+            image: p.product_images?.[0]?.url || 'https://www.gruasyequiposgarcia.com/wp-content/uploads/2013/10/camion_caterpillar_CAT-795F-AC.jpg',
             inStock: p.active,
             specs: { 'Código': p.code },
             features: []
           }));
         }
-        
+
         if (mappedProducts.length === 0) {
           setFeatured(mockProducts.slice(0, 4));
         } else {
@@ -41,7 +41,7 @@ export default function FeaturedProducts() {
         setFeatured(mockProducts.slice(0, 4));
       }
     };
-    
+
     fetchFeatured();
   }, []);
 

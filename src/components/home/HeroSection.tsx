@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Truck, Headphones, Zap } from 'lucide-react';
 
 export default function HeroSection() {
+  x1
   return (
     <section style={{ backgroundColor: '#1B1B1B', position: 'relative', overflow: 'hidden', minHeight: 'calc(100vh - 72px)' }} id="hero">
       <div style={{
@@ -77,7 +78,7 @@ export default function HeroSection() {
             {/* Main image */}
             <div style={{ borderRadius: '16px', overflow: 'hidden', position: 'relative', border: '3px solid rgba(255,205,17,0.2)' }}>
               <img
-                src="https://images.unsplash.com/photo-1580901368919-7738efb0f228?w=800&h=600&fit=crop"
+                src="https://hexco.ae/wp-content/uploads/2023/11/CAT-350-4.jpg"
                 alt="Excavadora CAT"
                 style={{ width: '100%', height: '440px', objectFit: 'cover', display: 'block', filter: 'grayscale(20%)' }}
               />

@@ -18,7 +18,7 @@ export default function ProductsPage() {
       try {
         const backend_host = import.meta.env.VITE_BACKEND_HOST;
         const res = await axios.get(`${backend_host}/api/v1/admin/products`);
-        
+
         let mappedProducts = [];
         if (res.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
           mappedProducts = res.data.data.map((p: any) => ({
@@ -28,13 +28,13 @@ export default function ProductsPage() {
             shortDescription: p.description?.substring(0, 80) || 'Producto sin descripción corta.',
             price: parseFloat(p.base_price) || 0,
             category: p.product_type === 'spare_part' ? 'repuestos' : p.product_type === 'accessory' ? 'accesorios' : 'maquinaria',
-            image: p.product_images?.[0]?.url || 'https://images.unsplash.com/photo-1579684389782-64d84b5e901a?auto=format&fit=crop&q=80&w=800', // fallback image
+            image: p.product_images?.[0]?.url || 'https://img.magnific.com/foto-gratis/excavadora-cavando-suelo-luz-dia_23-2149194775.jpg?semt=ais_hybrid&w=740&q=80', // fallback image
             inStock: p.active,
             specs: { 'Código': p.code },
             features: []
           }));
         }
-        
+
         if (mappedProducts.length === 0) {
           setProducts(mockProducts);
         } else {
@@ -45,7 +45,7 @@ export default function ProductsPage() {
         setProducts(mockProducts);
       }
     };
-    
+
     fetchProducts();
   }, []);
 
