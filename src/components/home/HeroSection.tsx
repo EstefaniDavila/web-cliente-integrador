@@ -5,23 +5,16 @@ export default function HeroSection() {
   return (
     <section style={{ backgroundColor: '#1B1B1B', position: 'relative', overflow: 'hidden', minHeight: 'calc(100vh - 72px)' }} id="hero">
 
-      {/* Dot pattern background */}
       <div style={{
         position: 'absolute', inset: 0, opacity: 0.15, pointerEvents: 'none',
         backgroundImage: 'radial-gradient(circle, #FFCD11 1px, transparent 1px)',
         backgroundSize: '32px 32px',
       }} />
-
-      {/* Yellow right stripe */}
       <div style={{ position: 'absolute', top: 0, right: 0, height: '100%', width: '80px', backgroundColor: '#FFCD11', clipPath: 'polygon(30px 0, 100% 0, 100% 100%, 0 100%)', opacity: 0.9, zIndex: 1 }} />
-
-      {/* Glow */}
       <div style={{ position: 'absolute', top: '-100px', right: '80px', width: '500px', height: '500px', backgroundColor: 'rgba(255,205,17,0.08)', borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none' }} />
-
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 40px', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'center', minHeight: 'calc(100vh - 72px)', paddingTop: '48px', paddingBottom: '48px' }} className="hero-grid">
 
-          {/* Left */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', backgroundColor: 'rgba(255,205,17,0.1)', border: '1px solid rgba(255,205,17,0.3)', borderRadius: '4px', width: 'fit-content' }}>
               <ShieldCheck size={14} color="#FFCD11" />
