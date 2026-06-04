@@ -24,16 +24,16 @@ const faqs = [
 export default function HelpDeskPage() {
   const { user } = useAuth();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-  
-  const [showForm, setShowForm] = useState(false);
-  
+
+  // const [showForm, setShowForm] = useState(false);
+
   const [formData, setFormData] = useState({
     name: user?.roleable?.contact_name || user?.roleable?.business_name || '',
     phone: user?.phone || user?.roleable?.phone || '',
     subject: '',
     message: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -112,14 +112,14 @@ export default function HelpDeskPage() {
 
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '56px 40px 80px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '40px', alignItems: 'start' }}>
-          
+
           {/* Columna FAQ */}
           <div>
             <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '8px' }}>
               Preguntas Frecuentes
             </h2>
             <div style={{ width: '32px', height: '3px', backgroundColor: '#FFCD11', marginBottom: '28px' }} />
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {faqs.map((faq, index) => (
                 <div key={index} style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
@@ -161,11 +161,11 @@ export default function HelpDeskPage() {
                 <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: 1.7, marginBottom: '32px' }}>
                   Un asesor revisará tu caso y te contactará por WhatsApp muy pronto.
                 </p>
-                <button 
-                  onClick={() => { 
-                    setSuccessMsg(false); 
-                    setFormData({ ...formData, subject: '', message: '' }); 
-                  }} 
+                <button
+                  onClick={() => {
+                    setSuccessMsg(false);
+                    setFormData({ ...formData, subject: '', message: '' });
+                  }}
                   style={{ padding: '12px 28px', backgroundColor: '#1B1B1B', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                 >
                   Enviar Otra Solicitud
@@ -177,7 +177,7 @@ export default function HelpDeskPage() {
                   Abre un Ticket de Ayuda
                 </h2>
                 <div style={{ width: '32px', height: '3px', backgroundColor: '#FFCD11', marginBottom: '28px' }} />
-                
+
                 {errorMsg && (
                   <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '13px', fontWeight: 600 }}>
                     {errorMsg}
@@ -189,12 +189,12 @@ export default function HelpDeskPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={labelStyle}>Nombre o Empresa</label>
-                        <input 
-                          type="text" 
-                          value={formData.name} 
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                          required 
-                          placeholder="Juan Pérez" 
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          required
+                          placeholder="Juan Pérez"
                           style={fieldStyle}
                           onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
                           onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
@@ -202,12 +202,12 @@ export default function HelpDeskPage() {
                       </div>
                       <div>
                         <label style={labelStyle}>Número de WhatsApp</label>
-                        <input 
-                          type="tel" 
-                          value={formData.phone} 
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
-                          required 
-                          placeholder="+51 987654321" 
+                        <input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          required
+                          placeholder="+51 987654321"
                           style={fieldStyle}
                           onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
                           onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
@@ -218,12 +218,12 @@ export default function HelpDeskPage() {
 
                   <div>
                     <label style={labelStyle}>Asunto de su consulta</label>
-                    <input 
-                      type="text" 
-                      value={formData.subject} 
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })} 
-                      required 
-                      placeholder="Ej. Problema con mi cotización" 
+                    <input
+                      type="text"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      required
+                      placeholder="Ej. Problema con mi cotización"
                       style={fieldStyle}
                       onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#FFCD11'; }}
                       onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
@@ -232,26 +232,26 @@ export default function HelpDeskPage() {
 
                   <div>
                     <label style={labelStyle}>Mensaje Detallado</label>
-                    <textarea 
-                      value={formData.message} 
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })} 
-                      required 
-                      rows={5} 
-                      placeholder="Escriba aquí los detalles para que podamos ayudarle mejor..." 
+                    <textarea
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      required
+                      rows={5}
+                      placeholder="Escriba aquí los detalles para que podamos ayudarle mejor..."
                       style={{ ...fieldStyle, padding: '12px 16px', resize: 'none' }}
                       onFocus={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = '#FFCD11'; }}
                       onBlur={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = '#e5e7eb'; }}
                     />
                   </div>
 
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={isSubmitting}
-                    style={{ 
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', 
-                      padding: '14px 28px', backgroundColor: '#FFCD11', border: 'none', borderRadius: '8px', 
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 900, 
-                      textTransform: 'uppercase', letterSpacing: '0.08em', color: '#1B1B1B', 
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                      padding: '14px 28px', backgroundColor: '#FFCD11', border: 'none', borderRadius: '8px',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 900,
+                      textTransform: 'uppercase', letterSpacing: '0.08em', color: '#1B1B1B',
                       boxShadow: '0 4px 0 0 #B89600', opacity: isSubmitting ? 0.7 : 1
                     }}
                   >
