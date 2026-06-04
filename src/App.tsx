@@ -14,6 +14,7 @@ import DashboardPage from './pages/DashboardPage';
 import ContactPage from './pages/ContactPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import HelpDeskPage from './pages/HelpDeskPage';
 import { UserProvider } from './providers/UserProvider';
 import { AlertDialogProvider } from './providers/AlertDialogProvider';
 
@@ -44,6 +45,7 @@ function AppLayout() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/contacto" element={<ContactPage />} />
+          <Route path="/ayuda" element={<HelpDeskPage />} />
           <Route path="/terminos" element={<TermsPage />} />
           <Route path="/privacidad" element={<PrivacyPage />} />
         </Routes>

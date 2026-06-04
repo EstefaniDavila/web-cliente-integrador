@@ -9,6 +9,7 @@ const navLinks = [
   { to: '/productos', label: 'Productos' },
   { to: '/servicios', label: 'Servicios' },
   { to: '/contacto', label: 'Contacto' },
+  { to: '/ayuda', label: 'Ayuda' },
 ];
 
 export default function Navbar() {

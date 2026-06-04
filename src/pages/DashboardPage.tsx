@@ -1,5 +1,5 @@
 import { Link, Navigate } from 'react-router-dom';
-import { FileText, Package, Wrench, Clock, ArrowRight, Building2, Mail, Phone, Eye, X } from 'lucide-react';
+import { FileText, Package, Wrench, Clock, ArrowRight, Building2, Mail, Phone, Eye, X, HelpCircle, MessageCircle } from 'lucide-react';
 import { useAuth } from '../providers/UserProvider';
 import { formatPrice } from '../data/mockData';
 import useCrud from '../hooks/useCrud';
@@ -58,6 +58,9 @@ export default function DashboardPage() {
   const { getModel: getQuotations } = useCrud('/api/v1/client/portal/quotations');
   const { getModel: getOrders } = useCrud('/api/v1/client/portal/orders');
   const { getModel: getMaintenances } = useCrud('/api/v1/client/portal/maintenances');
+  const { getModel: getInfoRequests } = useCrud('/api/v1/client/information_requests');
+
+  const [infoRequests, setInfoRequests] = useState<any[]>([]);
 
   const resolvedUser = user || (() => {
     try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
@@ -87,6 +90,7 @@ export default function DashboardPage() {
       setOrders(mappedOrders);
     }).catch(console.error);
     getMaintenances(`/api/v1/client/portal/maintenances?client_id=${clientId}`).then(data => setServiceRequests(data.maintenances || [])).catch(console.error);
+    getInfoRequests(`/api/v1/client/information_requests?client_id=${clientId}`).then(data => setInfoRequests(data.information_requests || [])).catch(console.error);
   }, [resolvedUser?.roleable?.id || resolvedUser?.roleable_id]);
 
   const { updateModel: updateQuotation, insertModel: insertComment } = useCrud();
@@ -133,6 +137,7 @@ export default function DashboardPage() {
     { icon: FileText, label: 'Cotizaciones', value: quotations.length, accent: '#FFCD11' },
     { icon: Package, label: 'Órdenes', value: orders.length, accent: '#3b82f6' },
     { icon: Wrench, label: 'Servicios', value: serviceRequests.length, accent: '#10b981' },
+    { icon: HelpCircle, label: 'Ayuda', value: infoRequests.length, accent: '#d946ef' },
   ];
 
   return (
@@ -422,6 +427,63 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
+
+        {/* Consultas de Ayuda */}
+        <section style={{ marginTop: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ width: '36px', height: '36px', backgroundColor: '#1B1B1B', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <HelpCircle size={18} color="#FFCD11" />
+            </div>
+            <h2 style={{ fontSize: '16px', fontWeight: 900, color: '#1B1B1B', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>Mis Consultas de Ayuda (Tickets)</h2>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {infoRequests.map((req: any) => (
+              <div key={req.id} style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div>
+                    <span style={{ fontSize: '11px', fontWeight: 900, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px', display: 'block' }}>
+                      Ticket #{req.id}
+                    </span>
+                    <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1B1B1B', margin: 0 }}>{req.subject}</h3>
+                  </div>
+                  <StatusBadge status={req.status === 'resolved' ? 'completada' : 'pendiente'} />
+                </div>
+                <div style={{ backgroundColor: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #f3f4f6', marginBottom: '16px' }}>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#4b5563', lineHeight: 1.6 }}>{req.message}</p>
+                </div>
+                
+                {req.response && (
+                  <div style={{ backgroundColor: '#fffbeb', padding: '16px', borderRadius: '8px', border: '1px solid #fde68a', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <MessageCircle size={14} color="#d97706" />
+                      <span style={{ fontSize: '11px', fontWeight: 900, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Respuesta de CAT ERP</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#92400e', lineHeight: 1.6 }}>{req.response}</p>
+                    
+                    {req.document_url && (
+                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(217,119,6,0.2)' }}>
+                        <a 
+                          href={req.document_url.startsWith('http') ? req.document_url : `${import.meta.env.VITE_BACKEND_HOST}${req.document_url}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 900, color: '#b45309', textDecoration: 'none', backgroundColor: 'rgba(217,119,6,0.1)', padding: '6px 12px', borderRadius: '4px', textTransform: 'uppercase' }}
+                        >
+                          <FileText size={14} /> Ver Documento Adjunto
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            {infoRequests.length === 0 && (
+              <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '48px 20px', textAlign: 'center', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic' }}>
+                No tienes consultas de ayuda registradas.
+              </div>
+            )}
+          </div>
+        </section>
       </div>
 
       {/* Quotation Detail Modal */}
